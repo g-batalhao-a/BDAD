@@ -1,0 +1,247 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang2070{\fonttbl{\f0\fnil\fcharset0 Courier New;}}
+{\*\generator Riched20 10.0.18362}\viewkind4\uc1 
+\pard\sa200\sl240\slmult1\f0\fs22\lang22 PRAGMA foreign_keys = off;\par
+DROP TABLE IF EXISTS localizacao;\par
+DROP TABLE IF EXISTS supermercado;\par
+DROP TABLE IF EXISTS pessoa;\par
+DROP TABLE IF EXISTS funcionario;\par
+DROP TABLE IF EXISTS cliente;\par
+DROP TABLE IF EXISTS horario;\par
+DROP TABLE IF EXISTS pausa;\par
+DROP TABLE IF EXISTS caixa;\par
+DROP TABLE IF EXISTS automatica;\par
+DROP TABLE IF EXISTS manual;\par
+DROP TABLE IF EXISTS seccao;\par
+DROP TABLE IF EXISTS compra;\par
+DROP TABLE IF EXISTS produto;\par
+DROP TABLE IF EXISTS quantidade;\par
+DROP TABLE IF EXISTS responsavel;\par
+DROP TABLE IF EXISTS trabalha;\par
+DROP TABLE IF EXISTS possui;\par
+\par
+\par
+CREATE TABLE localizacao(\par
+idlocalizacao INTEGER,\par
+codigo_postal VARCHAR2(50) NOT NULL,\par
+morada VARCHAR2(200) NOT NULL,\par
+localidade VARCHAR2(50) NOT NULL,\par
+CONSTRAINT localizacao_pk PRIMARY KEY (idlocalizacao)\par
+);\par
+\par
+CREATE TABLE supermercado(\par
+idsupermercado INTEGER,\par
+nome VARCHAR2(50) NOT NULL,\par
+idlocalidade INTEGER REFERENCES localizacao(idlocalizacao),\par
+idhorario INTEGER REFERENCES horario(idhorario),\par
+CONSTRAINT supermercado_pk PRIMARY KEY (idsupermercado),\par
+CONSTRAINT supermercado_fk1 FOREIGN KEY (idlocalidade) REFERENCES localizacao(idlocalizacao),\par
+CONSTRAINT supermercado_fk2 FOREIGN KEY (idhorario) REFERENCES horario(idhorario)\par
+);\par
+\par
+CREATE TABLE pessoa(\par
+idpessoa INTEGER,\par
+nif INTEGER CHECK((nif>100000000)AND (nif<400000000)),\par
+nome VARCHAR2(50) NOT NULL,\par
+data_de_nascimento DATE,\par
+telefone INTEGER,\par
+genero CHAR(1) DEFAULT '?',\par
+idlocalidade INTEGER REFERENCES localizacao(idlocalidade),\par
+UNIQUE(nif),\par
+UNIQUE(nome,data_de_nascimento),\par
+UNIQUE(nome,idlocalidade),\par
+CONSTRAINT pessoa_pk PRIMARY KEY (idpessoa),\par
+CONSTRAINT pessoa_fk1 FOREIGN KEY (idlocalidade) REFERENCES localizacao(idlocalidade)\par
+);\par
+\par
+CREATE TABLE funcionario(\par
+idpessoa INTEGER REFERENCES pessoa(idpessoa),\par
+id INTEGER NOT NULL,\par
+salario INTEGER NOT NULL,\par
+idsupermercado INTEGER REFERENCES supermercado(idsupermercado),\par
+idhorario INTEGER REFERENCES horario(idhorario),\par
+CONSTRAINT funcionario_pk PRIMARY KEY (idpessoa,id),\par
+CONSTRAINT pessoa_fk1 FOREIGN KEY (idpessoa) REFERENCES pessoa(idpessoa),\par
+CONSTRAINT pessoa_fk2 FOREIGN KEY (idsupermercado) REFERENCES supermercado(idsupermercado),\par
+CONSTRAINT pessoa_fk3 FOREIGN KEY (idhorario) REFERENCES horario(idhorario)\par
+);\par
+\par
+CREATE TABLE cliente(\par
+idpessoa INTEGER REFERENCES pessoa(idpessoa),\par
+idcliente INTEGER NOT NULL,\par
+numero_de_cliente INTEGER NOT NULL,\par
+CONSTRAINT cliente_pk PRIMARY KEY (idpessoa,idcliente),\par
+CONSTRAINT pessoa_fk1 FOREIGN KEY (idpessoa) REFERENCES pessoa(idpessoa)\par
+);\par
+\par
+CREATE TABLE horario(\par
+idhorario INTEGER,\par
+hora_inicial DATE NOT NULL,\par
+hora_final DATE NOT NULL,\par
+dia_da_semana VARCHAR2(50) NOT NULL,\par
+CONSTRAINT horario_pk PRIMARY KEY (idhorario),\par
+CONSTRAINT date_check CHECK(hora_inicial<hora_final),\par
+CONSTRAINT day_check CHECK(dia_da_semana=="Segunda" OR dia_da_semana=="Terca" OR dia_da_semana=="Quarta" OR dia_da_semana=="Quinta" OR dia_da_semana=="Sexta" OR dia_da_semana=="Sabado")\par
+);\par
+\par
+CREATE TABLE pausa(\par
+idfuncionario INTEGER REFERENCES funcionario(id),\par
+idhorario INTEGER REFERENCES horario(idhorario),\par
+hora_inicial_pausa_manha DATE NOT NULL,\par
+hora_final_pausa_manha DATE NOT NULL,\par
+hora_inicial_pausa_almo\'e7o DATE NOT NULL,\par
+hora_final_pausa_almo\'e7o DATE NOT NULL,\par
+hora_inicial_pausa_tarde DATE NOT NULL,\par
+hora_final_pausa_tarde DATE NOT NULL,\par
+CONSTRAINT pausa_pk PRIMARY KEY (idfuncionario),\par
+CONSTRAINT pausa_fk1 FOREIGN KEY (idfuncionario) REFERENCES funcionario(funcionario_pk),\par
+CONSTRAINT pessoa_fk2 FOREIGN KEY (idhorario) REFERENCES horario(idhorario),\par
+CONSTRAINT date_check CHECK(hora_inicial_pausa_manha <hora_final_pausa_manha AND hora_final_pausa_manha<hora_inicial_pausa_almo\'e7o AND hora_inicial_pausa_almo\'e7o<hora_final_pausa_almo\'e7o AND hora_final_pausa_almo\'e7o<hora_inicial_pausa_tarde AND hora_inicial_pausa_tarde<hora_final_pausa_tarde)\par
+);\par
+\par
+CREATE TABLE caixa(\par
+idcaixa INTEGER,\par
+numero INTEGER NOT NULL,\par
+aberta BOOLEAN DEFAULT false,\par
+CONSTRAINT caixa_pk PRIMARY KEY (idcaixa)\par
+);\par
+\par
+CREATE TABLE automatica(\par
+idcaixa INTEGER REFERENCES caixa(idcaixa),\par
+CONSTRAINT automatica_pk PRIMARY KEY (idcaixa),\par
+CONSTRAINT automatica_fk1 FOREIGN KEY (idcaixa) REFERENCES caixa(idcaixa)\par
+);\par
+\par
+CREATE TABLE manual(\par
+idcaixa INTEGER REFERENCES caixa(idcaixa),\par
+idfuncionario INTEGER REFERENCES funcionario(id),\par
+CONSTRAINT manual_pk PRIMARY KEY (idcaixa,idfuncionario),\par
+CONSTRAINT manual_fk1 FOREIGN KEY (idfuncionario) REFERENCES funcionario(funcionario_pk)\par
+);\par
+\par
+CREATE TABLE seccao(\par
+idseccao INTEGER,\par
+nome VARCHAR2(50) NOT NULL,\par
+idfuncionario INTEGER REFERENCES funcionario(id),\par
+idsupermercado INTEGER REFERENCES supermercado(idsupermercado),\par
+CONSTRAINT seccao_pk PRIMARY KEY (idseccao),\par
+CONSTRAINT seccao_fk1 FOREIGN KEY (idfuncionario) REFERENCES funcionario(funcionario_pk),\par
+CONSTRAINT pessoa_fk2 FOREIGN KEY (idsupermercado) REFERENCES supermercado(idsupermercado)\par
+);\par
+\par
+CREATE TABLE compra(\par
+idcompra INTEGER,\par
+dia DATE NOT NULL,\par
+hora DATE NOT NULL,\par
+idcliente INTEGER REFERENCES cliente(cliente_pk),\par
+idcaixa INTEGER REFERENCES caixa(idcaixa),\par
+CONSTRAINT compra_pk PRIMARY KEY (idcompra),\par
+CONSTRAINT compra_fk1 FOREIGN KEY (idcliente) REFERENCES cliente(cliente_pk),\par
+CONSTRAINT pessoa_fk2 FOREIGN KEY (idcaixa) REFERENCES caixa(idcaixa)\par
+);\par
+\par
+CREATE TABLE produto(\par
+idproduto INTEGER,\par
+preco INTEGER CHECK(preco>0),\par
+quantidade_disponivel INTEGER CHECK(quantidade_disponivel>=0),\par
+idseccao INTEGER REFERENCES seccao(idseccao),\par
+CONSTRAINT produto_pk PRIMARY KEY (idproduto),\par
+CONSTRAINT produto_fk1 FOREIGN KEY (idseccao) REFERENCES seccao(idseccao)\par
+);\par
+\par
+CREATE TABLE quantidade(\par
+idproduto INTEGER REFERENCES produto(idproduto),\par
+idcompra INTEGER REFERENCES compra(idcompra),\par
+quantidade INTEGER CHECK(quantidade>0),\par
+CONSTRAINT quantidade_pk PRIMARY KEY (idproduto, idcompra),\par
+CONSTRAINT quantidade_fk1 FOREIGN KEY (idproduto) REFERENCES produto(idproduto),\par
+CONSTRAINT quantidade_fk2 FOREIGN KEY (idcompra) REFERENCES compra(idcompra)\par
+);\par
+\par
+CREATE TABLE responsavel(\par
+idcaixa INTEGER REFERENCES caixa(idcaixa),\par
+idfuncionario INTEGER REFERENCES funcionario(id),\par
+CONSTRAINT responsavel_pk PRIMARY KEY (idcaixa,idfuncionario),\par
+CONSTRAINT responsavel_fk1 FOREIGN KEY (idcaixa) REFERENCES caixa(idcaixa),\par
+CONSTRAINT responsavel_fk2 FOREIGN KEY (idfuncionario) REFERENCES funcionario(funcionario_pk)\par
+);\par
+\par
+CREATE TABLE trabalha(\par
+idfuncionario INTEGER REFERENCES funcionario(id),\par
+idseccao INTEGER REFERENCES seccao(idseccao),\par
+CONSTRAINT trabalha_pk PRIMARY KEY (idfuncionario,idseccao),\par
+CONSTRAINT trabalha_fk1 FOREIGN KEY (idfuncionario) REFERENCES funcionario(funcionario_pk),\par
+CONSTRAINT trabalha_fk2 FOREIGN KEY (idseccao) REFERENCES seccao(idseccao)\par
+);\par
+\par
+CREATE TABLE possui(\par
+idcompra INTEGER REFERENCES compra(idcompra),\par
+idproduto INTEGER REFERENCES produto(idproduto),\par
+CONSTRAINT possui_pk PRIMARY KEY (idcompra,idproduto),\par
+CONSTRAINT possui_fk1 FOREIGN KEY (idcompra) REFERENCES compra(idcompra),\par
+CONSTRAINT possui_fk2 FOREIGN KEY (idproduto) REFERENCES produto(idproduto)\par
+);\par
+\par
+\par
+\par
+CREATE TABLE pilot(\par
+num INTEGER NOT NULL,\par
+firstname VARCHAR2(50) NOT NULL,\par
+surname VARCHAR2(50) NOT NULL,\par
+nationality VARCHAR2(50) NOT NULL,\par
+birthday DATE,\par
+name VARCHAR2(50) REFERENCES team(name),\par
+model VARCHAR2(50) REFERENCES aircraft(model),\par
+CONSTRAINT pilot_pk PRIMARY KEY (num),\par
+CONSTRAINT pilot_aircraft_fk1 FOREIGN KEY (model) REFERENCES aircraft(model),\par
+CONSTRAINT pilot_team_fk1 FOREIGN KEY (name) REFERENCES team(name)\par
+);\par
+\par
+CREATE TABLE race(\par
+location VARCHAR2(50) NOT NULL,\par
+edition INTEGER NOT NULL,\par
+country VARCHAR2(50) NOT NULL,\par
+date DATE NOT NULL UNIQUE,\par
+gates INTEGER NOT NULL,\par
+eliminations INTEGER DEFAULT 1,\par
+CONSTRAINT race_pk PRIMARY KEY (location,edition)\par
+);\par
+\par
+CREATE TABLE participation(\par
+num INTEGER NOT NULL,\par
+location VARCHAR2(32) NOT NULL,\par
+edition INTEGER NOT NULL,\par
+trainingtime INTEGER CHECK (trainingtime > 0),\par
+trainingpos INTEGER NOT NULL CHECK (trainingpos >=1),\par
+trainingpenalty INTEGER,\par
+qualificationtime INTEGER,\par
+qualificationpos INTEGER CHECK (qualificationpos >= 1),\par
+qualificationpenalty INTEGER,\par
+eliminationtime INTEGER,\par
+eliminationpos INTEGER CHECK (eliminationpos >=1),\par
+eliminationpenalty INTEGER, \par
+CONSTRAINT participation_pk PRIMARY KEY (num,location,edition),\par
+CONSTRAINT participation_pilot_fk1 FOREIGN KEY(location,edition) REFERENCES race (location,edition),\par
+CONSTRAINT participation_race_fk1 FOREIGN KEY (location,edition) REFERENCES race (location,edition),\par
+CONSTRAINT qualification CHECK ((qualificationtime IS NULL OR qualificationpos NOT NULL) AND qualificationtime >0),\par
+CONSTRAINT elimination CHECK ((eliminationtime IS NULL OR eliminationpos NOT NULL) AND eliminationtime>0)\par
+);\par
+\par
+CREATE TABLE duel(\par
+numpilot1 NUMBER NOT NULL,\par
+numpilot2 NUMBER NOT NULL,\par
+location varchar(50) NOT NULL,\par
+edition INTEGER NOT NULL,\par
+dueltype varchar(50) NOT NULL,\par
+timepilot1 INTEGER CHECK (timepilot1 > 0),\par
+timepilot2 INTEGER CHECK (timepilot2 > 0),\par
+penaltypilot1 INTEGER NOT NULL,\par
+penaltypilot2 INTEGER NOT NULL,\par
+CONSTRAINT duel_pk PRIMARY KEY (numpilot1 ,numpilot2, location, edition),\par
+CONSTRAINT duel_pilot1_fk1 FOREIGN KEY (numpilot1) REFERENCES pilot(num),\par
+CONSTRAINT duel_pilot2_fk1 FOREIGN KEY (numpilot2) REFERENCES pilot(num),\par
+CONSTRAINT duel_edition_fk1 FOREIGN KEY (location, edition) REFERENCES race(location,edition)\par
+);\par
+
+\pard\sa200\sl276\slmult1\par
+}
+ 

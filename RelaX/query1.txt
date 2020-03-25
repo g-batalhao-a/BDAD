@@ -1,0 +1,16 @@
+-- pi nr Aluno
+-- π cod,design ( σ curso='AC' (Cadeira))
+-- pi Nome Aluno⨝Prof
+-- pi Nome Aluno▷Prof
+-- (pi Nome (Aluno)) ∪ (pi Nome (Prof))
+-- pi Nome ( ( σ cod='TS1' Prova)⨝ Aluno)
+-- pi Nome ( (( σ curso='IS' Cadeira)⨝ Prova)⨝Aluno)
+-- (pi Nome, cod (Aluno⨝σnota>=9.5 Prova))÷(pi cod σcurso='IS' Cadeira)
+-- γ max(nota) -> nota Prova
+-- γ avg(nota)->nota (σ cod='BD' Prova)
+-- γ count(nr)->nr Aluno
+-- γ curso; count(cod)->cod (Cadeira)
+-- γ nr; count(nr)->nr Prova
+-- γ avg(cont)->nr ( γ nr; count(nr)-> cont (Prova))
+-- pi Nome, nota (Aluno ⨝ γ nr; avg(nota)->nota ( σ nota ≥ 9.5 Prova))
+-- pi cod, nota, Nome ((γ cod; max(nota)->nota (Prova) ⨝ Prova) ⨝ Aluno)
