@@ -1,6 +1,6 @@
-{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang2070{\fonttbl{\f0\fnil\fcharset0 Courier New;}}
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat{\fonttbl{\f0\fnil\fcharset0 Courier New;}}
 {\*\generator Riched20 10.0.18362}\viewkind4\uc1 
-\pard\sa200\sl240\slmult1\f0\fs22\lang22 PRAGMA foreign_keys = off;\par
+\pard\f0\fs22\lang2070 PRAGMA foreign_keys = off;\par
 \par
 DROP TABLE IF EXISTS localizacao;\par
 DROP TABLE IF EXISTS supermercado;\par
@@ -32,8 +32,8 @@ CONSTRAINT localizacao_pk PRIMARY KEY (idlocalizacao)\par
 \par
 CREATE TABLE horario(\par
 idhorario INTEGER,\par
-hora_inicial DATE ,\par
-hora_final DATE ,\par
+hora_inicial DATE NOT NULL,\par
+hora_final DATE NOT NULL,\par
 CONSTRAINT horario_pk PRIMARY KEY (idhorario),\par
 CONSTRAINT date_check CHECK(hora_inicial<hora_final)\par
 );\par
@@ -41,7 +41,7 @@ CONSTRAINT date_check CHECK(hora_inicial<hora_final)\par
 CREATE TABLE horariofuncionario(\par
 idhorariofuncionario INTEGER,\par
 idhorario INTEGER REFERENCES horario ON DELETE SET NULL ON UPDATE CASCADE,\par
-dia_da_semana VARCHAR2(50),\par
+dia_da_semana VARCHAR2(50) NOT NULL,\par
 CONSTRAINT horariofuncionario_pk PRIMARY KEY (idhorario, idhorariofuncionario),\par
 CONSTRAINT horariofuncionario_fk1 FOREIGN KEY (idhorario) REFERENCES horario,\par
 CONSTRAINT day_check CHECK(dia_da_semana=="Segunda" OR dia_da_semana=="Terca" OR dia_da_semana=="Quarta" OR dia_da_semana=="Quinta" OR dia_da_semana=="Sexta" OR dia_da_semana=="Sabado" OR dia_da_semana=="Domingo")\par
@@ -50,39 +50,39 @@ CONSTRAINT day_check CHECK(dia_da_semana=="Segunda" OR dia_da_semana=="Terca" OR
 CREATE TABLE supermercado(\par
 idsupermercado INTEGER,\par
 nome VARCHAR2(50) NOT NULL,\par
-idlocalidade INTEGER REFERENCES localizacao ON DELETE SET NULL ON UPDATE CASCADE,\par
+idlocalizacao INTEGER REFERENCES localizacao ON DELETE SET NULL ON UPDATE CASCADE,\par
 idhorario INTEGER REFERENCES horario ON DELETE SET NULL ON UPDATE CASCADE,\par
 CONSTRAINT supermercado_pk PRIMARY KEY (idsupermercado),\par
-CONSTRAINT supermercado_fk1 FOREIGN KEY (idlocalidade) REFERENCES localizacao,\par
+CONSTRAINT supermercado_fk1 FOREIGN KEY (idlocalizacao) REFERENCES localizacao,\par
 CONSTRAINT supermercado_fk2 FOREIGN KEY (idhorario) REFERENCES horario\par
 );\par
 \par
 CREATE TABLE pessoa(\par
 idpessoa INTEGER,\par
-nif INTEGER CHECK((nif>100000000)AND (nif<400000000)),\par
+nif INTEGER CHECK((nif>100000000)AND (nif<400000000)) NOT NULL,\par
 nome VARCHAR2(50) NOT NULL,\par
-data_de_nascimento DATE,\par
-telefone INTEGER,\par
-genero CHAR(1) DEFAULT '?',\par
-idlocalidade INTEGER REFERENCES localizacao ON DELETE SET NULL ON UPDATE CASCADE,\par
+data_de_nascimento DATE NOT NULL,\par
+telefone INTEGER NOT NULL,\par
+genero CHAR(1) DEFAULT '?' NOT NULL,\par
+idlocalizacao INTEGER REFERENCES localizacao ON DELETE SET NULL ON UPDATE CASCADE,\par
 UNIQUE(nif),\par
 UNIQUE(nome,data_de_nascimento),\par
 UNIQUE(telefone),\par
 CONSTRAINT pessoa_pk PRIMARY KEY (idpessoa),\par
-CONSTRAINT pessoa_fk1 FOREIGN KEY (idlocalidade) REFERENCES localizacao\par
+CONSTRAINT pessoa_fk1 FOREIGN KEY (idlocalizacao) REFERENCES localizacao\par
 );\par
 \par
 CREATE TABLE funcionario(\par
 idpessoa INTEGER REFERENCES pessoa ON DELETE SET NULL ON UPDATE CASCADE,\par
-id INTEGER,\par
+idfuncionario INTEGER,\par
 salario INTEGER NOT NULL,\par
 idsupermercado INTEGER REFERENCES supermercado ON DELETE SET NULL ON UPDATE CASCADE,\par
-idhorario INTEGER NOT NULL,\par
-idhorariofuncionario INTEGER NOT NULL,\par
-CONSTRAINT funcionario_pk PRIMARY KEY (idpessoa,id),\par
-CONSTRAINT pessoa_fk1 FOREIGN KEY (idpessoa) REFERENCES pessoa,\par
-CONSTRAINT pessoa_fk2 FOREIGN KEY (idsupermercado) REFERENCES supermercado,\par
-CONSTRAINT pessoa_fk3 FOREIGN KEY (idhorario, idhorariofuncionario ) REFERENCES horariofuncionario(idhorario, idhorariofuncionario ) ON DELETE SET NULL ON UPDATE CASCADE,\par
+idhorario INTEGER,\par
+idhorariofuncionario INTEGER,\par
+CONSTRAINT funcionario_pk PRIMARY KEY (idpessoa,idfuncionario),\par
+CONSTRAINT funcionario_fk1 FOREIGN KEY (idpessoa) REFERENCES pessoa,\par
+CONSTRAINT funcionario_fk2 FOREIGN KEY (idsupermercado) REFERENCES supermercado,\par
+CONSTRAINT funcionario_fk3 FOREIGN KEY (idhorario, idhorariofuncionario ) REFERENCES horariofuncionario(idhorario, idhorariofuncionario ) ON DELETE SET NULL ON UPDATE CASCADE,\par
 CONSTRAINT salario_check CHECK(salario>=700)\par
 );\par
 \par
@@ -91,30 +91,30 @@ idpessoa INTEGER REFERENCES pessoa ON DELETE SET NULL ON UPDATE CASCADE,\par
 idcliente INTEGER,\par
 numero_de_cliente INTEGER NOT NULL,\par
 CONSTRAINT cliente_pk PRIMARY KEY (idpessoa,idcliente),\par
-CONSTRAINT pessoa_fk1 FOREIGN KEY (idpessoa) REFERENCES pessoa\par
+CONSTRAINT cliente_fk1 FOREIGN KEY (idpessoa) REFERENCES pessoa\par
 );\par
 \par
 CREATE TABLE pausa(\par
-idfuncionario INTEGER NOT NULL,\par
-id INTEGER NOT NULL,\par
-idhorario INTEGER NOT NULL,\par
-idhorariofuncionario INTEGER NOT NULL,\par
-hora_inicial_pausa_manha DATE,\par
-hora_final_pausa_manha DATE,\par
-hora_inicial_pausa_almo\'e7o DATE,\par
-hora_final_pausa_almo\'e7o DATE,\par
-hora_inicial_pausa_tarde DATE,\par
-hora_final_pausa_tarde DATE,\par
-CONSTRAINT pausa_pk PRIMARY KEY (idfuncionario,id),\par
-CONSTRAINT pausa_fk1 FOREIGN KEY (idfuncionario,id) REFERENCES funcionario(idpessoa,id)ON DELETE SET NULL ON UPDATE CASCADE,\par
-CONSTRAINT pessoa_fk2 FOREIGN KEY (idhorario,idhorariofuncionario) REFERENCES horariofuncionario(idhorario,idhorariofuncionario) ON DELETE SET NULL ON UPDATE CASCADE,\par
+idpessoa INTEGER,\par
+idfuncionario INTEGER,\par
+idhorario INTEGER,\par
+idhorariofuncionario INTEGER,\par
+hora_inicial_pausa_manha DATE NOT NULL,\par
+hora_final_pausa_manha DATE NOT NULL,\par
+hora_inicial_pausa_almo\'e7o DATE NOT NULL,\par
+hora_final_pausa_almo\'e7o DATE NOT NULL,\par
+hora_inicial_pausa_tarde DATE NOT NULL,\par
+hora_final_pausa_tarde DATE NOT NULL,\par
+CONSTRAINT pausa_pk PRIMARY KEY (idpessoa,idfuncionario),\par
+CONSTRAINT pausa_fk1 FOREIGN KEY (idpessoa,idfuncionario) REFERENCES funcionario(idpessoa,idfuncionario )ON DELETE SET NULL ON UPDATE CASCADE,\par
+CONSTRAINT pausa_fk2 FOREIGN KEY (idhorario,idhorariofuncionario) REFERENCES horariofuncionario(idhorario,idhorariofuncionario) ON DELETE SET NULL ON UPDATE CASCADE,\par
 CONSTRAINT date_check CHECK(hora_inicial_pausa_manha <hora_final_pausa_manha AND hora_final_pausa_manha<hora_inicial_pausa_almo\'e7o AND hora_inicial_pausa_almo\'e7o<hora_final_pausa_almo\'e7o AND hora_final_pausa_almo\'e7o<hora_inicial_pausa_tarde AND hora_inicial_pausa_tarde<hora_final_pausa_tarde)\par
 );\par
 \par
 CREATE TABLE caixa(\par
 idcaixa INTEGER,\par
 numero INTEGER NOT NULL,\par
-aberta BOOLEAN DEFAULT false,\par
+aberta BOOLEAN DEFAULT false NOT NULL,\par
 CONSTRAINT caixa_pk PRIMARY KEY (idcaixa)\par
 );\par
 \par
@@ -126,36 +126,40 @@ CONSTRAINT automatica_fk1 FOREIGN KEY (idcaixa) REFERENCES caixa\par
 \par
 CREATE TABLE manual(\par
 idcaixa INTEGER REFERENCES caixa ON DELETE SET NULL ON UPDATE CASCADE,\par
-idfuncionario INTEGER REFERENCES funcionario ON DELETE SET NULL ON UPDATE CASCADE,\par
-CONSTRAINT manual_pk PRIMARY KEY (idcaixa,idfuncionario),\par
-CONSTRAINT manual_fk1 FOREIGN KEY (idfuncionario) REFERENCES funcionario\par
+idpessoa INTEGER,\par
+idfuncionario INTEGER,\par
+CONSTRAINT manual_pk PRIMARY KEY (idcaixa,idpessoa, idfuncionario),\par
+CONSTRAINT manual_fk1 FOREIGN KEY (idpessoa, idfuncionario) REFERENCES funcionario ON DELETE SET NULL ON UPDATE CASCADE\par
 );\par
 \par
 CREATE TABLE seccao(\par
 idseccao INTEGER,\par
 nome VARCHAR2(50) NOT NULL,\par
-idfuncionario INTEGER REFERENCES funcionario ON DELETE SET NULL ON UPDATE CASCADE,\par
+idpessoa INTEGER,\par
+idfuncionario INTEGER,\par
 idsupermercado INTEGER REFERENCES supermercado ON DELETE SET NULL ON UPDATE CASCADE,\par
 CONSTRAINT seccao_pk PRIMARY KEY (idseccao),\par
-CONSTRAINT seccao_fk1 FOREIGN KEY (idfuncionario) REFERENCES funcionario,\par
-CONSTRAINT pessoa_fk2 FOREIGN KEY (idsupermercado) REFERENCES supermercado\par
+CONSTRAINT seccao_fk1 FOREIGN KEY (idpessoa, idfuncionario) REFERENCES funcionario ON DELETE SET NULL ON UPDATE CASCADE,\par
+CONSTRAINT seccao_fk2 FOREIGN KEY (idsupermercado) REFERENCES supermercado\par
 );\par
 \par
 CREATE TABLE compra(\par
 idcompra INTEGER,\par
 dia DATE NOT NULL,\par
 hora DATE NOT NULL,\par
-idcliente INTEGER REFERENCES cliente ON DELETE SET NULL ON UPDATE CASCADE,\par
+idpessoa INTEGER,\par
+idcliente INTEGER,\par
 idcaixa INTEGER REFERENCES caixa ON DELETE SET NULL ON UPDATE CASCADE,\par
 CONSTRAINT compra_pk PRIMARY KEY (idcompra),\par
-CONSTRAINT compra_fk1 FOREIGN KEY (idcliente) REFERENCES cliente,\par
-CONSTRAINT pessoa_fk2 FOREIGN KEY (idcaixa) REFERENCES caixa\par
+CONSTRAINT compra_fk1 FOREIGN KEY (idpessoa, idcliente) REFERENCES cliente ON DELETE SET NULL ON UPDATE CASCADE,\par
+CONSTRAINT compra_fk2 FOREIGN KEY (idcaixa) REFERENCES caixa\par
 );\par
 \par
 CREATE TABLE produto(\par
 idproduto INTEGER,\par
-preco INTEGER CHECK(preco>0),\par
-quantidade_disponivel INTEGER CHECK(quantidade_disponivel>=0),\par
+nome VARCHAR2(50) NOT NULL,\par
+preco INTEGER CHECK(preco>0) NOT NULL,\par
+quantidade_disponivel INTEGER NOT NULL CHECK(quantidade_disponivel>=0),\par
 idseccao INTEGER REFERENCES seccao ON DELETE SET NULL ON UPDATE CASCADE,\par
 CONSTRAINT produto_pk PRIMARY KEY (idproduto),\par
 CONSTRAINT produto_fk1 FOREIGN KEY (idseccao) REFERENCES seccao\par
@@ -164,34 +168,28 @@ CONSTRAINT produto_fk1 FOREIGN KEY (idseccao) REFERENCES seccao\par
 CREATE TABLE quantidade(\par
 idproduto INTEGER REFERENCES produto ON DELETE SET NULL ON UPDATE CASCADE,\par
 idcompra INTEGER REFERENCES compra ON DELETE SET NULL ON UPDATE CASCADE,\par
-quantidade INTEGER CHECK(quantidade>0),\par
+quantidade INTEGER NOT NULL CHECK(quantidade>0),\par
 CONSTRAINT quantidade_pk PRIMARY KEY (idproduto, idcompra),\par
 CONSTRAINT quantidade_fk1 FOREIGN KEY (idproduto) REFERENCES produto,\par
 CONSTRAINT quantidade_fk2 FOREIGN KEY (idcompra) REFERENCES compra\par
 );\par
 \par
 CREATE TABLE responsavel(\par
-idcaixa INTEGER REFERENCES caixa ON DELETE SET NULL ON UPDATE CASCADE,\par
-idfuncionario INTEGER REFERENCES funcionario ON DELETE SET NULL ON UPDATE CASCADE,\par
-CONSTRAINT responsavel_pk PRIMARY KEY (idcaixa,idfuncionario),\par
+idcaixa INTEGER NOT NULL REFERENCES caixa ON DELETE SET NULL ON UPDATE CASCADE,\par
+idpessoa INTEGER,\par
+idfuncionario INTEGER,\par
+CONSTRAINT responsavel_pk PRIMARY KEY (idcaixa, idpessoa, idfuncionario),\par
 CONSTRAINT responsavel_fk1 FOREIGN KEY (idcaixa) REFERENCES caixa,\par
-CONSTRAINT responsavel_fk2 FOREIGN KEY (idfuncionario) REFERENCES funcionario\par
+CONSTRAINT responsavel_fk2 FOREIGN KEY (idpessoa, idfuncionario) REFERENCES funcionario ON DELETE SET NULL ON UPDATE CASCADE\par
 );\par
 \par
 CREATE TABLE trabalha(\par
-idfuncionario INTEGER REFERENCES funcionario ON DELETE SET NULL ON UPDATE CASCADE,\par
+idpessoa INTEGER,\par
+idfuncionario INTEGER,\par
 idseccao INTEGER REFERENCES seccao ON DELETE SET NULL ON UPDATE CASCADE,\par
-CONSTRAINT trabalha_pk PRIMARY KEY (idfuncionario,idseccao),\par
-CONSTRAINT trabalha_fk1 FOREIGN KEY (idfuncionario) REFERENCES funcionario,\par
+CONSTRAINT trabalha_pk PRIMARY KEY (idpessoa, idfuncionario, idseccao),\par
+CONSTRAINT trabalha_fk1 FOREIGN KEY (idpessoa, idfuncionario) REFERENCES funcionario ON DELETE SET NULL ON UPDATE CASCADE,\par
 CONSTRAINT trabalha_fk2 FOREIGN KEY (idseccao) REFERENCES seccao\par
-);\par
-\par
-CREATE TABLE possui(\par
-idcompra INTEGER REFERENCES compra ON DELETE SET NULL ON UPDATE CASCADE,\par
-idproduto INTEGER REFERENCES produto ON DELETE SET NULL ON UPDATE CASCADE,\par
-CONSTRAINT possui_pk PRIMARY KEY (idcompra,idproduto),\par
-CONSTRAINT possui_fk1 FOREIGN KEY (idcompra) REFERENCES compra,\par
-CONSTRAINT possui_fk2 FOREIGN KEY (idproduto) REFERENCES  produto\par
 );\par
 \par
 PRAGMA foreign_keys = on;\par
