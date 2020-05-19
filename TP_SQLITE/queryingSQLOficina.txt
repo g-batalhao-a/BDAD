@@ -1,0 +1,93 @@
+a. select * from Peca where custoUnitario<10 and codigo like '%98%';
+b. select * from Carro,Reparacao where Carro.idCarro=Reparacao.idCarro and Reparacao.dataFim like '2010-09-%';
+c. select nome from Cliente,Carro,Reparacao,ReparacaoPeca,Peca where Cliente.idCliente=Carro.idCarro and Carro.idCarro=Reparacao.idCarro and Reparacao.idReparacao=ReparacaoPeca.idReparacao and ReparacaoPeca.idPeca=Peca.idPeca and custoUnitario>10 order by custoUnitario desc;
+d. select nome from Cliente where idCliente not in (select idCliente from Carro);
+e. select Carro.matricula, count(*) as NumRep from Carro,Reparacao where (Carro.idCarro=Reparacao.idCarro) group by carro.matricula;
+f. select matricula, SUM(strftime('%J',dataFim)-strftime('%J',dataInicio)) Ndias from Carro,Reparacao where  Carro.idCarro=Reparacao.idCarro group by matricula;
+
+k. 
+m.
+CREATE VIEW PrecoReparacao1 AS
+SELECT FuncionarioReparacao.idReparacao AS idReparacao,
+ifnull(SUM(Especialidade.custoHorario*FuncionarioReparacao.numHoras),0) AS precoFuncionario
+FROM Especialidade, Funcionario, FuncionarioReparacao
+WHERE Especialidade.idEspecialidade=Funcionario.idEspecialidade
+AND Funcionario.idFuncionario=FuncionarioReparacao.idFuncionario
+GROUP BY FuncionarioReparacao.idReparacao;
+CREATE VIEW PrecoReparacao2 AS
+SELECT ReparacaoPeca.idReparacao AS idReparacao,
+ifnull(SUM(Peca.custoUnitario * ReparacaoPeca.quantidade),0) AS
+precoPeca
+FROM ReparacaoPeca, Peca
+WHERE ReparacaoPeca.idPeca=Peca.idpeca
+GROUP BY ReparacaoPeca.idReparacao;
+CREATE VIEW precoReparacao AS
+SELECT ifnull(idReparacao1,idReparacao2) AS idReparacao,
+ifnull(precoFuncionario,0) + ifnull(precoPeca,0) AS preco
+FROM
+(SELECT PrecoReparacao1.idReparacao AS idReparacao1,
+PrecoReparacao1.precoFuncionario, PrecoReparacao2.idReparacao AS
+idReparacao2, PrecoReparacao2.precoPeca
+FROM PrecoReparacao1
+LEFT JOIN PrecoReparacao2
+ON PrecoReparacao1.idReparacao = PrecoReparacao2.idReparacao
+UNION ALL
+SELECT PrecoReparacao1.idReparacao AS idReparacao1,
+PrecoReparacao1.precoFuncionario, PrecoReparacao2.idReparacao AS
+idReparacao2, PrecoReparacao2.precoPeca
+FROM PrecoReparacao2
+LEFT JOIN PrecoReparacao1
+ON PrecoReparacao1.idReparacao = PrecoReparacao2.idReparacao
+WHERE PrecoReparacao1.idReparacao IS NULL);
+select * from PrecoReparacao ORDER BY preco DESC LIMIT 3;
+
+q.
+SELECT codigo
+FROM Peca, PecaModelo, Modelo, Marca
+WHERE Peca.idPeca=PecaModelo.idPeca AND
+PecaModelo.idModelo=Modelo.idModelo AND
+Modelo.idMarca=Marca.idMarca
+AND Marca.nome='Volvo' AND Peca.custoUnitario > (SELECT
+MAX(Peca.custoUnitario) FROM Peca, PecaModelo, Modelo, Marca
+WHERE Peca.idPeca=PecaModelo.idPeca AND
+PecaModelo.idModelo=Modelo.idModelo AND
+Modelo.idMarca=Marca.idMarca AND Marca.nome='Renault');
+
+r.
+SELECT codigo
+FROM Peca, PecaModelo, Modelo, Marca
+WHERE Peca.idPeca=PecaModelo.idPeca AND
+PecaModelo.idModelo=Modelo.idModelo AND
+Modelo.idMarca=Marca.idMarca
+AND Marca.nome='Volvo' AND Peca.custoUnitario > (SELECT
+MIN(Peca.custoUnitario) FROM Peca, PecaModelo, Modelo, Marca
+WHERE Peca.idPeca=PecaModelo.idPeca AND
+PecaModelo.idModelo=Modelo.idModelo AND
+Modelo.idMarca=Marca.idMarca AND Marca.nome='Renault');
+
+s.
+SELECT Matricula
+FROM Carro
+WHERE idCarro IN (SELECT idCarro FROM Reparacao GROUP BY(idCarro) HAVING COUNT(*) > 1);
+
+t.
+SELECT dataInicio, dataFim, Cliente.nome
+FROM Reparacao, Cliente, Carro
+WHERE Reparacao.idCarro=Carro.idCarro AND
+Carro.idCliente=Cliente.idCliente AND Carro.idCarro IN
+(SELECT idCarro FROM Reparacao
+GROUP BY idCarro
+HAVING COUNT(*)>1);
+
+u.
+SELECT idReparacao
+FROM Reparacao
+WHERE idReparacao NOT IN
+(SELECT idReparacao AS idReparacao1 FROM Reparacao,
+Especialidade
+WHERE idEspecialidade NOT IN
+(SELECT idEspecialidade
+FROM FuncionarioReparacao,Funcionario
+WHERE
+FuncionarioReparacao.idFuncionario=Funcionario.idFuncionario AND
+FuncionarioReparacao.idReparacao=idReparacao1));
