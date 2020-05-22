@@ -44,18 +44,18 @@ INSERT INTO pessoa VALUES(136306590, 238698418, 'Ines Reluzita Svetlana', strfti
 INSERT INTO pessoa VALUES(596188989, 322614211, 'Gonalo Batalhas', strftime('%Y-%m-%d', '1980-08-26'), 912332456, 'F',793529968);\par
 \par
 -- funcionarios\par
-INSERT INTO funcionario VALUES(610417904,800,687815497,246510889, 404483088);\par
-INSERT INTO funcionario VALUES(258220554,750,233626926,246510889, 572949826);\par
-INSERT INTO funcionario VALUES(972632319,900,947563740,246510889, 360000174);\par
-INSERT INTO funcionario VALUES(499179157,1500,348947416,246510889, 672536309);\par
-INSERT INTO funcionario VALUES(596188989,1000,348947416,246510889, 672536309);\par
+INSERT INTO funcionario VALUES(610417904,800,687815497,246510889);\par
+INSERT INTO funcionario VALUES(258220554,750,233626926,246510889);\par
+INSERT INTO funcionario VALUES(972632319,900,947563740,246510889);\par
+INSERT INTO funcionario VALUES(499179157,1500,348947416,134405588);\par
+INSERT INTO funcionario VALUES(596188989,1000,348947416,134405588);\par
 \par
 -- horarios funcionarios\par
 INSERT INTO horariofuncionario VALUES(610417904,246510889,'Segunda',strftime('%H:%M', '10:30'), strftime('%H:%M', '10:50'),strftime('%H:%M', '13:15'), strftime('%H:%M', '14:15'),strftime('%H:%M', '17:00'), strftime('%H:%M', '17:20'));\par
 INSERT INTO horariofuncionario VALUES(258220554,246510889,'Terca',strftime('%H:%M', '10:10'), strftime('%H:%M', '10:30'),strftime('%H:%M', '12:30'), strftime('%H:%M', '13:30'),strftime('%H:%M', '16:15'), strftime('%H:%M', '16:30'));\par
 INSERT INTO horariofuncionario VALUES(972632319,246510889,'Quarta',strftime('%H:%M', '11:00'), strftime('%H:%M', '11:15'),strftime('%H:%M', '13:45'), strftime('%H:%M', '14:45'),strftime('%H:%M', '17:50'), strftime('%H:%M', '18:10'));\par
 INSERT INTO horariofuncionario VALUES(499179157,134405588,'Quinta',strftime('%H:%M', '09:45'), strftime('%H:%M', '10:05'),strftime('%H:%M', '12:00'), strftime('%H:%M', '13:00'),strftime('%H:%M', '15:45'), strftime('%H:%M', '16:15'));\par
-INSERT INTO horariofuncionario VALUES(596188989,134405588,'Sexta',strftime('%H:%M', '10:10'), strftime('%H:%M', '10:30'),strftime('%H:%M', '12:30'), strftime('%H:%M', '13:30'),strftime('%H:%M', '16:15'), strftime('%H:%M', '16:30')););\par
+INSERT INTO horariofuncionario VALUES(596188989,134405588,'Sexta',strftime('%H:%M', '10:10'), strftime('%H:%M', '10:30'),strftime('%H:%M', '12:30'), strftime('%H:%M', '13:30'),strftime('%H:%M', '16:15'), strftime('%H:%M', '16:30'));\par
 \par
 -- clientes\par
 INSERT INTO cliente VALUES(210152906, 0);\par
@@ -66,18 +66,18 @@ INSERT INTO cliente VALUES(136306590, 3);\par
 -- caixas\par
 INSERT INTO caixa VALUES(292889018, 1, 0, 687815497);\par
 INSERT INTO caixa VALUES(702102145, 2, 1, 687815497);\par
-INSERT INTO caixa VALUES(314874835, 3, 1, 342202605);\par
-INSERT INTO caixa VALUES(623031402, 4, 0, 465441082);\par
-INSERT INTO caixa VALUES(247958751, 5, 0, 233626926);\par
+INSERT INTO caixa VALUES(314874835, 3, 1, 348947416);\par
+INSERT INTO caixa VALUES(623031402, 4, 0, 348947416);\par
+INSERT INTO caixa VALUES(247958751, 5, 0, 348947416);\par
 \par
 -- caixas automaticas\par
 INSERT INTO automatica VALUES(292889018);\par
 INSERT INTO automatica VALUES(702102145);\par
 \par
 -- caixas manuais\par
-INSERT INTO manual VALUES(314874835);\par
-INSERT INTO manual VALUES(623031402);\par
-INSERT INTO manual VALUES(247958751);\par
+INSERT INTO manual VALUES(314874835,258220554);\par
+INSERT INTO manual VALUES(623031402,610417904);\par
+INSERT INTO manual VALUES(247958751,610417904);\par
 \par
 -- secoes\par
 \par
@@ -137,7 +137,6 @@ INSERT INTO responsavel VALUES(103508880, 499179157);\par
 INSERT INTO responsavel VALUES(812637375, 499179157);\par
 INSERT INTO responsavel VALUES(251447700, 596188989);\par
 INSERT INTO responsavel VALUES(329010548, 596188989);\par
-\par
 \par
 -- trabalhos\par
 \par

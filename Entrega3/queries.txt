@@ -1,0 +1,229 @@
+1) Mostrar as compras (dia, hora e custo total) de um certo cliente.
+
+.mode       columns
+.headers    on
+.nullvalue  NULL
+
+SELECT cliente.idpessoa, pessoa.nome, dia, hora, sum(produto.preco * quantidade.quantidade) as Custo
+FROM cliente NATURAL JOIN pessoa NATURAL JOIN compra NATURAL JOIN quantidade, produto
+WHERE quantidade.idproduto = produto.idproduto AND pessoa.nif = '238698418'
+GROUP by idcompra;
+
+
+
+
+2) Mostrar os horarios por funcionario
+
+.mode       columns
+.headers    on
+.nullvalue  NULL
+
+SELECT funcionario.idpessoa, pessoa.nome, horario.hora_inicial, horario.hora_final, horariofuncionario.dia_da_semana
+FROM funcionario NATURAL JOIN pessoa NATURAL JOIN horario NATURAL JOIN horariofuncionario
+WHERE horariofuncionario.idhorario = horario.idhorario;
+
+
+
+3) Mostrar o número de funcionários por supermercado
+
+.mode       columns
+.headers    on
+.nullvalue  NULL
+
+SELECT supermercado.idsupermercado, supermercado.nome, count(funcionario.idpessoa) AS Numero_Funcionarios
+FROM supermercado LEFT JOIN funcionario
+WHERE funcionario.idsupermercado = supermercado.idsupermercado
+GROUP BY supermercado.idsupermercado;
+
+
+
+4) TOP 5 produtos
+
+.mode       columns
+.headers    on
+.nullvalue  NULL
+
+SELECT * FROM
+(SELECT produto.nome, produto.preco, quantidade.quantidade as Quantidade_Comprada
+FROM produto NATURAL JOIN quantidade
+WHERE quantidade.idproduto = produto.idproduto
+GROUP by idproduto)
+ORDER BY Quantidade_comprada DESC
+LIMIT 5;
+
+
+
+
+5) Mostrar o numero de seccoes e caixas a cargo de cada funcionário
+
+.mode       columns
+.headers    on
+.nullvalue  NULL
+
+select funcionario.idpessoa, pessoa.nome, ifnull(numcaixas,0) as NumCaixas, ifnull(numseccoes,0) as Numseccoes
+from funcionario natural join pessoa left join 
+	(
+      select funcionario.idpessoa, count(*) as numcaixas
+	  from funcionario,manual
+	  where funcionario.idpessoa=manual.idpessoa
+	  group by funcionario.idpessoa
+    ) as func1 on funcionario.idpessoa = func1.idpessoa
+    LEFT join 
+    (
+      select funcionario.idpessoa, count(*) as numSeccoes
+	  from funcionario, seccao, trabalha
+	  where trabalha.idpessoa = funcionario.idpessoa AND trabalha.idseccao=seccao.idseccao
+	  group by funcionario.idpessoa
+    ) as func2 on funcionario.idpessoa = func2.idpessoa;
+
+
+
+
+6) Lucro de um supermercado
+
+.mode       columns
+.headers    on
+.nullvalue  NULL
+
+SELECT supermercado.idsupermercado,supermercado.nome, sum(Lucro) as Lucro_Supermercado
+FROM supermercado NATURAL JOIN
+(SELECT  caixa.idsupermercado, sum(produto.preco * quantidade.quantidade) as Lucro
+ FROM caixa NATURAL JOIN pessoa NATURAL JOIN compra NATURAL JOIN quantidade, produto
+WHERE quantidade.idproduto = produto.idproduto
+GROUP by idcaixa)
+GROUP BY idsupermercado
+ORDER BY Lucro_Supermercado DESC;
+
+
+7) Frequência de Clientes, em relação à sua localidade
+
+.mode       columns
+.headers    on
+.nullvalue  NULL
+
+DROP VIEW IF EXISTS [clientslocations];
+
+CREATE VIEW [clientslocations] AS
+SELECT localizacao.idlocalizacao,localizacao.localidade,COUNT(cliente.idpessoa) as Numero_Clientes
+FROM localizacao NATURAL JOIN pessoa NATURAL JOIN cliente
+WHERE localizacao.idlocalizacao = pessoa.idlocalizacao 
+GROUP by localizacao.localidade;
+
+SELECT clientslocations.idlocalizacao, clientslocations.localidade, ((Numero_Clientes*100)/COUnt(cliente.idpessoa)) AS Frequencia_clientes
+FROM clientslocations,cliente
+GROUP by clientslocations.localidade;
+
+8)Horas úteis dos funcionários
+
+.mode       columns
+.headers    on
+.nullvalue  NULL
+
+Select funcionario.idpessoa as Funcionario, pessoa.nome , strftime('%H:%M', round(
+  Cast ((JulianDay(horario.hora_final) - JulianDay(horario.hora_inicial)) * 24 * 60
+       - (JulianDay(horariofuncionario.hora_final_pausa_manha) - JulianDay(horariofuncionario.hora_inicial_pausa_manha)) * 24 * 60
+       - (JulianDay(horariofuncionario.hora_final_pausa_almoco) - JulianDay(horariofuncionario.hora_inicial_pausa_almoco)) * 24 * 60
+       - (JulianDay(horariofuncionario.hora_final_pausa_tarde) - JulianDay(horariofuncionario.hora_inicial_pausa_tarde)) * 24 * 60 
+        As REAL) * 60 ,2), 'unixepoch') as Horas_Uteis
+from funcionario natural join pessoa Natural join horario natural join horariofuncionario
+
+9) Mostrar todos clientes e as suas informações
+
+.mode       columns
+.headers    on
+.nullvalue  NULL
+
+SELECT *
+FROM cliente NATURAL JOIN pessoa
+ORDER BY numero_de_cliente;
+
+
+9) Mostrar compra mais cara
+
+.mode       columns
+.headers    on
+.nullvalue  NULL
+
+-- Compra mais cara
+
+SELECT idpessoa, nome, max(Custo) AS COMPRA_MAXIMA_CLIENTE 
+FROM
+(SELECT cliente.idpessoa, pessoa.nome, dia, hora, sum(produto.preco * quantidade.quantidade) as Custo
+FROM cliente NATURAL JOIN pessoa NATURAL JOIN compra NATURAL JOIN quantidade, produto
+WHERE quantidade.idproduto = produto.idproduto
+GROUP by idcompra)
+GROUP BY idpessoa;
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Triggers
+
+1)
+_____________________________________________________________________________________________
+DROP TRIGGER IF EXISTS updateProductQuantity;
+_____________________________________________________________________________________________
+create trigger updateProductQuantity
+before insert on quantidade
+when new.idproduto in 
+(
+  select idproduto
+  from quantidade
+  WHERE quantidade.idproduto = new.idproduto and quantidade.idcompra = new.idcompra
+)
+BEGIN
+	update quantidade
+    set quantidade = quantidade + New.quantidade
+    where idproduto = New.idproduto and idcompra = new.idcompra;
+    update produto
+    set quantidade_disponivel = quantidade_disponivel - new.quantidade
+    where produto.idproduto = new.idproduto;
+    select RAISE(IGNORE);
+end;
+_____________________________________________________________________________________________
+select * from quantidade natural join produto;
+INSERT INTO quantidade VALUES(646430620, 531978268, 100);
+select * from quantidade natural join produto;
+_____________________________________________________________________________________________
+
+
+
+2)
+_____________________________________________________________________________________________
+DROP TRIGGER IF EXISTS updateProductQuantity;
+_____________________________________________________________________________________________
+create trigger updateProductQuantity
+BEFORE insert on quantidade
+BEGIN
+	SELECT case
+    when (Select idproduto from produto where idproduto = new.idproduto and quantidade_disponivel - new.quantidade <0)
+    then RAISE(ABORT, 'Not enough available quantity') 
+    end;
+end;
+_____________________________________________________________________________________________
+SELECt * from quantidade NATURAL JOIN produto;
+INSERT into quantidade VALUES(594887697,123456789,10000);
+SELECt * from quantidade NATURAL JOIN produto;
+_____________________________________________________________________________________________
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+3) Calculo do salario
+
+DROP TRIGGER IF EXISTS updateSalary;
+create trigger updateSalary
+After UPDATE on horario
+BEGIN
+	UPDATE funcionario
+    set salario = (JulianDay(new.hora_final) - JulianDay(new.hora_inicial)) * 24 * 8 + 850 
+    where funcionario.idhorario = new.idhorario;
+end;
+
+SELECT * FROM horario;
+
+UPDATE horario 
+set hora_inicial = strftime('%H:%M', '07:00')
+where idhorario = 134405588;
+
+SELECT * FROM horario;
