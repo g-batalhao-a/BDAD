@@ -7,7 +7,6 @@ DROP TABLE IF EXISTS funcionario;
 DROP TABLE IF EXISTS cliente;
 DROP TABLE IF EXISTS horario;
 DROP TABLE IF EXISTS horariofuncionario;
-DROP TABLE IF EXISTS pausa;
 DROP TABLE IF EXISTS caixa;
 DROP TABLE IF EXISTS automatica;
 DROP TABLE IF EXISTS manual;
@@ -18,7 +17,6 @@ DROP TABLE IF EXISTS quantidade;
 DROP TABLE IF EXISTS responsavelcaixa;
 DROP TABLE IF EXISTS responsavel;
 DROP TABLE IF EXISTS trabalha;
-DROP TABLE IF EXISTS possui;
 
 
 CREATE TABLE localizacao(
@@ -78,7 +76,7 @@ hora_inicial_pausa_almoco DATE NOT NULL,
 hora_final_pausa_almoco DATE NOT NULL,
 hora_inicial_pausa_tarde DATE NOT NULL,
 hora_final_pausa_tarde DATE NOT NULL,
-CONSTRAINT horariofuncionario_pk PRIMARY KEY (idpessoa,idhorario),
+CONSTRAINT horariofuncionario_pk PRIMARY KEY (idpessoa),
 CONSTRAINT date_check CHECK(hora_inicial_pausa_manha<hora_final_pausa_manha AND hora_final_pausa_manha<hora_inicial_pausa_almoco AND hora_inicial_pausa_almoco<hora_final_pausa_almoco AND hora_final_pausa_almoco<hora_inicial_pausa_tarde AND hora_inicial_pausa_tarde<hora_final_pausa_tarde),
 CONSTRAINT day_check CHECK(dia_da_semana=="Segunda" OR dia_da_semana=="Terca" OR dia_da_semana=="Quarta" OR dia_da_semana=="Quinta" OR dia_da_semana=="Sexta" OR dia_da_semana=="Sabado" OR dia_da_semana=="Domingo")
 );
@@ -143,13 +141,13 @@ CONSTRAINT quantidade_pk PRIMARY KEY (idproduto, idcompra)
 CREATE TABLE responsavelcaixa(
 idcaixa INTEGER NOT NULL REFERENCES caixa ON DELETE SET NULL ON UPDATE CASCADE,
 idpessoa INTEGER REFERENCES funcionario ON DELETE CASCADE ON UPDATE CASCADE,
-CONSTRAINT responsavel_pk PRIMARY KEY (idcaixa, idpessoa)
+CONSTRAINT responsavel_pk PRIMARY KEY (idcaixa)
 );
 
 CREATE TABLE responsavel(
 idseccao INTEGER NOT NULL REFERENCES seccao ON DELETE SET NULL ON UPDATE CASCADE,
 idpessoa INTEGER REFERENCES funcionario ON DELETE CASCADE ON UPDATE CASCADE,
-CONSTRAINT responsavel_pk PRIMARY KEY (idseccao, idpessoa)
+CONSTRAINT responsavel_pk PRIMARY KEY (idseccao)
 );
 
 
